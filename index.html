@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>指文字練習</title>
+    <script type="module" crossorigin src="./assets/index-BXAJcosK.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DG_rcgus.css">
+  </head>
+  <body>
+    <main>
+      <!-- はじめの画面 -->
+      <section id="home">
+        <header>
+          <h1>指文字練習<span class="tag">試作版</span></h1>
+          <p class="lead">カメラの映像は、この端末の中だけで処理します。どこにも送りません。</p>
+        </header>
+
+        <div class="card">
+          <h2>出題</h2>
+          <div class="seg" id="set" role="radiogroup" aria-label="出題の範囲">
+            <button type="button" data-value="all" aria-pressed="true">すべて</button>
+            <button type="button" data-value="static" aria-pressed="false">動きなし</button>
+            <button type="button" data-value="motion" aria-pressed="false">動きあり</button>
+          </div>
+          <div class="seg" id="count" role="radiogroup" aria-label="問題数">
+            <button type="button" data-value="5" aria-pressed="false">5問</button>
+            <button type="button" data-value="10" aria-pressed="true">10問</button>
+            <button type="button" data-value="20" aria-pressed="false">20問</button>
+          </div>
+          <p class="note">苦手な文字ほど多めに出ます。スマホは体の正面に、手から離して置いてください（胸から上が映るくらい）。手持ちで近くから撮ると、判定が厳しくなります。</p>
+          <button id="start" class="primary" type="button">練習を始める</button>
+          <p class="note" id="status"></p>
+        </div>
+
+        <div class="card">
+          <h2>これまでの成績</h2>
+          <p id="record-summary">まだ練習していません。</p>
+          <p id="record-weak" class="weak"></p>
+        </div>
+      </section>
+
+      <!-- 練習の画面 -->
+      <section id="practice" hidden>
+        <div class="prompt">
+          <div class="prompt-text">
+            <span id="progress" class="progress"></span>
+            <span id="target" class="target"></span>
+            <span id="target-note" class="target-note" hidden></span>
+          </div>
+          <figure class="model">
+            <canvas id="model"></canvas>
+            <figcaption>お手本</figcaption>
+          </figure>
+        </div>
+        <ol id="steps" class="steps" hidden></ol>
+
+        <div id="stage" class="stage">
+          <video id="video" playsinline muted></video>
+          <canvas id="overlay"></canvas>
+          <div id="warn" class="warn" hidden></div>
+          <div id="banner" class="banner" hidden></div>
+        </div>
+
+        <div class="feedback">
+          <p id="message" class="message"></p>
+          <p id="hints" class="hints"></p>
+        </div>
+
+        <div class="scorebar" aria-hidden="true">
+          <div id="bar" class="bar"></div>
+          <div id="pass-mark" class="pass-mark"></div>
+        </div>
+        <p id="score-label" class="score-label"></p>
+
+        <div class="actions">
+          <button id="skip" type="button">スキップ</button>
+          <button id="quit" type="button">やめる</button>
+        </div>
+      </section>
+
+      <!-- お手本を撮る画面（URL の末尾に #record を付けたときだけ。練習する人には見せない） -->
+      <section id="capture" hidden>
+        <div class="prompt">
+          <div class="prompt-text">
+            <span id="cap-progress" class="progress"></span>
+            <span id="cap-target" class="target"></span>
+            <span id="cap-count" class="target-note"></span>
+          </div>
+          <figure class="model">
+            <canvas id="cap-model"></canvas>
+            <figcaption>PC のお手本</figcaption>
+          </figure>
+        </div>
+        <span id="cap-stage-anchor" hidden></span>
+        <div class="feedback">
+          <p id="cap-message" class="message">スマホは練習と同じように置いてください。</p>
+          <p id="cap-hints" class="hints">文字ごとに 5 件ずつ撮ります。撮ったお手本は「保存する」でファイルにして送ってください。</p>
+        </div>
+        <button id="cap-begin" class="primary" type="button">カメラを準備する</button>
+        <div class="actions" id="cap-actions" hidden>
+          <button id="cap-prev" type="button">◀ 前</button>
+          <button id="cap-shoot" class="primary" type="button">撮る</button>
+          <button id="cap-next" type="button">次 ▶</button>
+        </div>
+        <div class="actions" id="cap-actions2" hidden>
+          <button id="cap-undo" type="button">この文字の最後の1件を消す</button>
+          <button id="cap-save" type="button">保存する</button>
+        </div>
+        <button id="cap-reset" class="link" type="button" hidden>撮ったお手本をすべて消して最初から</button>
+      </section>
+
+      <!-- 単語のお手本を撮る画面（URL の末尾に #record-words を付けたときだけ。練習する人には見せない） -->
+      <section id="wcap" hidden>
+        <div class="prompt">
+          <div class="prompt-text">
+            <span id="wc-progress" class="progress"></span>
+            <span id="wc-word" class="target word"></span>
+            <span id="wc-count" class="target-note"></span>
+          </div>
+        </div>
+        <span id="wc-stage-anchor" hidden></span>
+        <div class="feedback">
+          <p id="wc-message" class="message">スマホは練習と同じように置き、胸から上と両手が映るようにしてください。</p>
+          <p id="wc-hints" class="hints">単語ごとに 5 件ずつ撮ります。合図のあと、手を下ろした状態から単語を表し、終わったら手を下ろしてください。</p>
+        </div>
+        <p id="wc-perf" class="note"></p>
+        <button id="wc-begin" class="primary" type="button">カメラを準備する</button>
+        <div class="actions" id="wc-actions" hidden>
+          <button id="wc-prev" type="button">◀ 前</button>
+          <button id="wc-shoot" class="primary" type="button">撮る</button>
+          <button id="wc-next" type="button">次 ▶</button>
+        </div>
+        <div class="actions" id="wc-actions2" hidden>
+          <button id="wc-undo" type="button">この単語の最後の1件を消す</button>
+          <button id="wc-save" type="button">保存する</button>
+        </div>
+        <button id="wc-reset" class="link" type="button" hidden>撮ったお手本をすべて消して最初から</button>
+      </section>
+
+      <!-- 単語の練習の画面（URL の末尾に #words を付けたときだけ。試作のあいだは隠し画面） -->
+      <section id="wpractice" hidden>
+        <div class="prompt">
+          <div class="prompt-text">
+            <span id="wp-progress" class="progress"></span>
+            <span id="wp-word" class="target word"></span>
+            <span id="wp-guide" class="target-note"></span>
+          </div>
+        </div>
+        <div id="wp-status" class="wp-status" aria-live="polite">「カメラを準備する」を押してください</div>
+        <span id="wp-stage-anchor" hidden></span>
+        <div class="feedback">
+          <p id="wp-message" class="message">スマホは体の正面に置き、胸から上と両手が映るようにしてください。</p>
+          <p id="wp-hints" class="hints">「表す」を押すと 3 秒数えてから 4 秒間記録します。手を下ろした状態から単語を表し、終わったら手を下ろしてください。</p>
+        </div>
+        <button id="wp-begin" class="primary" type="button">カメラを準備する</button>
+        <div class="actions" id="wp-actions" hidden>
+          <button id="wp-prev" type="button">◀ 前</button>
+          <button id="wp-go" class="primary" type="button">表す</button>
+          <button id="wp-next" type="button">次 ▶</button>
+        </div>
+        <div class="actions" id="wp-actions2" hidden>
+          <button id="wp-save" type="button">練習の記録を保存する</button>
+        </div>
+        <button id="wp-reset" class="link" type="button" hidden>練習の記録をすべて消す</button>
+      </section>
+
+      <!-- 結果の画面 -->
+      <section id="result" hidden>
+        <header>
+          <h1>結果</h1>
+        </header>
+        <div class="card">
+          <p id="result-summary" class="result-summary"></p>
+          <ul id="result-list" class="result-list"></ul>
+          <p id="result-weak" class="weak"></p>
+        </div>
+        <button id="again" class="primary" type="button">もう一度練習する</button>
+        <button id="export" type="button">この回の記録を書き出す</button>
+        <p class="note">記録には手の座標だけが入ります（映像は入りません）。判定の改善に使います。</p>
+        <button id="home-button" type="button">はじめの画面へ</button>
+      </section>
+    </main>
+
+  </body>
+</html>
